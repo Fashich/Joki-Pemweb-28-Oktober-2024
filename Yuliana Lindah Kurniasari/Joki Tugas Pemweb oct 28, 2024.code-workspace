@@ -1,0 +1,29 @@
+{
+  "folders": [
+    {
+      "path": "../Muhammad Fauzan Ramadhan"
+    },
+    {
+      "path": "."
+    },
+    {
+      "path": "../Nabila Eka Syafitri"
+    },
+    {
+      "path": "../Nasya Salsalbila Ashilah"
+    },
+    {
+      "path": "../Novita Dwi Putriani"
+    },
+    {
+      "path": "../Silvia meilindawati Pramana"
+    },
+    {
+      "path": "../Punya Life Goes On"
+    }
+  ],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "Punya Life Goes On",
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+  }
+}

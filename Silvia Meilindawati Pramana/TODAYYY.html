@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #FFF5F5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h2 {
+            margin: 0;
+        }
+
+        .add-task {
+            background: #6B2D5C;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s;
+        }
+
+        .add-task:hover {
+            background: #572648;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .task-item.dragging {
+            opacity: 0.5;
+        }
+
+        .task-item.completed {
+            background-color: #f8f8f8;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            margin-bottom: 0.5rem;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .task-date {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .task-attachments {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .attachment-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .dropzone {
+            border: 2px dashed #ddd;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        .dropzone.active {
+            border-color: #6B2D5C;
+            background-color: rgba(107, 45, 92, 0.1);
+        }
+
+        .task-form {
+            display: none;
+            margin-bottom: 1rem;
+            background: #f8f8f8;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .task-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6B2D5C;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: #6B2D5C;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #572648;
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #444;
+        }
+
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #FF4444;
+            color: white;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .delete-task {
+            background: none;
+            border: none;
+            color: #FF4444;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .delete-task:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+        .back-button {
+            background: #6B2D5C;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+        background: #6B2D5C;
+        }
+        .dragndrop-text {
+            color: rgb(150, 150, 150, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="goBack()">Kembali</button>
+        <div class="header">
+            <h2>Task Manager</h2>
+            <button class="add-task" onclick="showTaskForm()">+ Tambah Task</button>
+        </div>
+
+        <div class="task-form" id="taskForm">
+            <div class="form-group">
+                <label for="taskTitle">Judul Task</label>
+                <input type="text" id="taskTitle" placeholder="Masukkan judul task">
+            </div>
+            <div class="form-group">
+                <label for="taskDescription">Deskripsi</label>
+                <textarea id="taskDescription" rows="3" placeholder="Masukkan deskripsi task"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="taskDate">Tanggal</label>
+                <input type="text" id="taskDate" placeholder="Pilih tanggal">
+            </div>
+            <div class="dropzone" id="dropzone">
+                <span class="dragndrop-text">Drag and drop file di sini atau klik untuk memilih</span>
+                <input type="file" id="fileInput" multiple style="display: none;">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveTask()">Simpan</button>
+                <button class="btn btn-secondary" onclick="hideTaskForm()">Batal</button>
+            </div>
+        </div>
+
+        <div class="task-list" id="taskList">
+            <!-- Tasks will be added here -->
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Initialize date picker
+        flatpickr("#taskDate", {
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+    
+        // Task management
+        let tasks = [];
+        let draggedTask = null;
+    
+        function showTaskForm() {
+            document.getElementById('taskForm').classList.add('active');
+            document.getElementById('dropzone').style.display = 'block';
+        }
+    
+        function hideTaskForm() {
+            document.getElementById('taskForm').classList.remove('active');
+            document.getElementById('dropzone').style.display = 'none';
+            resetForm();
+        }
+    
+        function resetForm() {
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDate').value = '';
+        }
+    
+        function saveTask() {
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const date = document.getElementById('taskDate').value;
+    
+            if (!title) {
+                showNotification('Judul task harus diisi!');
+                return;
+            }
+    
+            const task = {
+                id: Date.now(),
+                title,
+                description,
+                date,
+                completed: false
+            };
+    
+            tasks.push(task);
+            renderTasks();
+            hideTaskForm();
+            showNotification('Task berhasil ditambahkan!', 'success');
+        }
+    
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+    
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = `task-item ${task.completed ? 'completed' : ''}`;
+                taskElement.draggable = true;
+                taskElement.dataset.taskId = task.id;
+    
+                taskElement.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" 
+                            ${task.completed ? 'checked' : ''} 
+                            onchange="toggleTask(${task.id})">
+                    <div class="task-content">
+                        <div class="task-text">${task.title}</div>
+                        <div class="task-meta">
+                            <div class="task-date">📅 ${task.date || 'Tidak ada tanggal'}</div>
+                        </div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    </div>
+                    <button class="delete-task" onclick="deleteTask(${task.id})">🗑</button>
+                `;
+    
+                // Add drag and drop events
+                taskElement.addEventListener('dragstart', handleDragStart);
+                taskElement.addEventListener('dragend', handleDragEnd);
+                taskElement.addEventListener('dragover', handleDragOver);
+                taskElement.addEventListener('drop', handleDrop);
+    
+                taskList.appendChild(taskElement);
+            });
+        }
+    
+        function toggleTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        }
+    
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            renderTasks();
+            showNotification('Task berhasil dihapus!');
+        }
+    
+        function showNotification(message, type = 'error') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.backgroundColor = type === 'success' ? '#4CAF50' : '#FF4444';
+    
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    
+        // Drag and drop functionality
+        function handleDragStart(e) {
+            draggedTask = e.target;
+            e.target.classList.add('dragging');
+        }
+    
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+    
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+    
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropTarget = e.target.closest('.task-item');
+            if (dropTarget && draggedTask !== dropTarget) {
+                const allTasks = [...document.querySelectorAll('.task-item')];
+                const draggedIndex = allTasks.indexOf(draggedTask);
+                const droppedIndex = allTasks.indexOf(dropTarget);
+    
+                // Reorder tasks array
+                const [movedTask] = tasks.splice(draggedIndex, 1);
+                tasks.splice(droppedIndex, 0, movedTask);
+    
+                renderTasks();
+            }
+        }
+    
+        // File handling
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+    
+        dropzone.addEventListener('click', () => fileInput.click());
+    
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('active');
+        });
+    
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('active');
+        });
+    
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('active');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+    
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            handleFiles(files);
+        });
+    
+        function handleFiles(files) {
+            // Handle file uploads here
+            showNotification(`${files.length} file berhasil diunggah!`, 'success');
+        }
+    
+        // Initial render
+        renderTasks();
+    
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
